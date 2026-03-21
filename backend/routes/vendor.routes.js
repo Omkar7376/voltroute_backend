@@ -5,24 +5,19 @@ const verifyToken = require("../middleware/verifyToken");
 const checkRole = require("../middleware/checkRole");
 const {
   createStation,
-  updateStation,
-  deleteStation,
-  listUsers,
-  listBookings,
-  listVendors,
-  approveVendor,
-  rejectVendor,
-  banUser,
-  unbanUser,
-  dashboardStats,
-} = require("../controllers/admin.controller");
+  listMyStations,
+  updateMyStation,
+  deleteMyStation,
+  myStationBookings,
+} = require("../controllers/vendor.controller");
 
 const router = express.Router();
 
+const vendorOnly = [verifyToken, checkRole("vendor")];
+
 router.post(
-  "/admin/station",
-  verifyToken,
-  checkRole("admin"),
+  "/vendor/station",
+  ...vendorOnly,
   [
     body("name").trim().isLength({ min: 2, max: 180 }),
     body("address").trim().isLength({ min: 5, max: 500 }),
@@ -37,10 +32,11 @@ router.post(
   createStation
 );
 
+router.get("/vendor/stations", ...vendorOnly, listMyStations);
+
 router.put(
-  "/admin/station/:id",
-  verifyToken,
-  checkRole("admin"),
+  "/vendor/station/:id",
+  ...vendorOnly,
   [
     param("id").isMongoId(),
     body("name").optional().trim().isLength({ min: 2, max: 180 }),
@@ -53,25 +49,11 @@ router.put(
     body("total_slots").optional().isInt({ min: 0 }),
     body("available_slots").optional().isInt({ min: 0 }),
   ],
-  updateStation
+  updateMyStation
 );
 
-router.delete(
-  "/admin/station/:id",
-  verifyToken,
-  checkRole("admin"),
-  [param("id").isMongoId()],
-  deleteStation
-);
-
-router.get("/admin/users", verifyToken, checkRole("admin"), listUsers);
-router.get("/admin/vendors", verifyToken, checkRole("admin"), listVendors);
-router.get("/admin/bookings", verifyToken, checkRole("admin"), listBookings);
-router.get("/admin/dashboard/stats", verifyToken, checkRole("admin"), dashboardStats);
-router.patch("/admin/vendors/:id/approve", verifyToken, checkRole("admin"), [param("id").isMongoId()], approveVendor);
-router.patch("/admin/vendors/:id/reject", verifyToken, checkRole("admin"), [param("id").isMongoId()], rejectVendor);
-router.patch("/admin/users/:id/ban", verifyToken, checkRole("admin"), [param("id").isMongoId()], banUser);
-router.patch("/admin/users/:id/unban", verifyToken, checkRole("admin"), [param("id").isMongoId()], unbanUser);
+router.delete("/vendor/station/:id", ...vendorOnly, [param("id").isMongoId()], deleteMyStation);
+router.get("/vendor/bookings", ...vendorOnly, myStationBookings);
 
 module.exports = router;
 

@@ -10,6 +10,7 @@ router.post(
     body("name").trim().isLength({ min: 2, max: 120 }),
     body("email").isEmail().normalizeEmail(),
     body("password").isLength({ min: 6, max: 100 }),
+    body("role").optional().isIn(["user", "vendor"]),
   ],
   register
 );

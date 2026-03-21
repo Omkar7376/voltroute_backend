@@ -90,6 +90,25 @@ async function myBookings(req, res) {
   }
 }
 
+async function cancelBooking(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
+  try {
+    const booking = await Booking.findOne({ _id: req.params.id, user_id: req.user.id });
+    if (!booking) return notFound(res, "Booking not found");
+    if (booking.status !== "booked") return badRequest(res, "Only active bookings can be cancelled");
+
+    booking.status = "cancelled";
+    await booking.save();
+    await ChargingStation.updateOne({ _id: booking.station_id }, { $inc: { available_slots: 1 } });
+    return ok(res, booking, "Booking cancelled");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
 async function favoriteStation(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
@@ -120,6 +139,7 @@ module.exports = {
   getStation,
   bookStation,
   myBookings,
+  cancelBooking,
   favoriteStation,
 };
 

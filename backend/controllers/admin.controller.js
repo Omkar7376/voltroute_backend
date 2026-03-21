@@ -18,7 +18,7 @@ async function createStation(req, res) {
       price_per_kwh: payload.price_per_kwh,
       total_slots: payload.total_slots,
       available_slots: payload.available_slots ?? payload.total_slots,
-      created_by: req.user.id,
+      vendor_id: req.user.id,
     });
     return created(res, station, "Station created");
   } catch (err) {
@@ -72,7 +72,10 @@ async function deleteStation(req, res) {
 
 async function listUsers(req, res) {
   try {
-    const users = await User.find({}, { name: 1, email: 1, role: 1, created_at: 1 }).sort({ _id: -1 });
+    const users = await User.find(
+      {},
+      { name: 1, email: 1, role: 1, is_approved: 1, is_banned: 1, created_at: 1 }
+    ).sort({ _id: -1 });
     return ok(res, users);
   } catch (err) {
     console.error(err);
@@ -82,8 +85,89 @@ async function listUsers(req, res) {
 
 async function listBookings(req, res) {
   try {
-    const bookings = await Booking.find().sort({ _id: -1 });
+    const bookings = await Booking.find().populate("user_id station_id").sort({ _id: -1 });
     return ok(res, bookings);
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
+async function listVendors(req, res) {
+  try {
+    const vendors = await User.find(
+      { role: "vendor" },
+      { name: 1, email: 1, role: 1, is_approved: 1, is_banned: 1, created_at: 1 }
+    ).sort({ _id: -1 });
+    return ok(res, vendors);
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
+async function approveVendor(req, res) {
+  try {
+    const vendor = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "vendor" },
+      { $set: { is_approved: true } },
+      { new: true }
+    );
+    if (!vendor) return notFound(res, "Vendor not found");
+    return ok(res, vendor, "Vendor approved");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
+async function rejectVendor(req, res) {
+  try {
+    const vendor = await User.findOneAndUpdate(
+      { _id: req.params.id, role: "vendor" },
+      { $set: { is_approved: false } },
+      { new: true }
+    );
+    if (!vendor) return notFound(res, "Vendor not found");
+    return ok(res, vendor, "Vendor rejected/suspended");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
+async function banUser(req, res) {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { $set: { is_banned: true } }, { new: true });
+    if (!user) return notFound(res, "User not found");
+    return ok(res, user, "User banned");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
+async function unbanUser(req, res) {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { $set: { is_banned: false } }, { new: true });
+    if (!user) return notFound(res, "User not found");
+    return ok(res, user, "User unbanned");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
+async function dashboardStats(req, res) {
+  try {
+    const [users, vendors, approvedVendors, stations, bookings] = await Promise.all([
+      User.countDocuments({ role: "user" }),
+      User.countDocuments({ role: "vendor" }),
+      User.countDocuments({ role: "vendor", is_approved: true }),
+      ChargingStation.countDocuments({}),
+      Booking.countDocuments({}),
+    ]);
+    return ok(res, { users, vendors, approved_vendors: approvedVendors, stations, bookings });
   } catch (err) {
     console.error(err);
     return serverError(res);
@@ -96,5 +180,11 @@ module.exports = {
   deleteStation,
   listUsers,
   listBookings,
+  listVendors,
+  approveVendor,
+  rejectVendor,
+  banUser,
+  unbanUser,
+  dashboardStats,
 };
 

@@ -9,6 +9,7 @@ const { notFound, serverError } = require("./utils/responses");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const adminRoutes = require("./routes/admin.routes");
+const vendorRoutes = require("./routes/vendor.routes");
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get("/health", (req, res) => res.json({ ok: true }));
 
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
+app.use("/api", vendorRoutes);
 app.use("/api", adminRoutes);
 
 app.use((req, res) => notFound(res, "Route not found"));

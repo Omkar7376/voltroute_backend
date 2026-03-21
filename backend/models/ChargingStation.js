@@ -12,7 +12,7 @@ const chargingStationSchema = new Schema(
     price_per_kwh: { type: Number, required: true },
     available_slots: { type: Number, required: true, min: 0, default: 0 },
     total_slots: { type: Number, required: true, min: 0, default: 0 },
-    created_by: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    vendor_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   {
     collection: "charging_stations",
@@ -21,7 +21,7 @@ const chargingStationSchema = new Schema(
   }
 );
 
-chargingStationSchema.index({ created_by: 1 });
+chargingStationSchema.index({ vendor_id: 1 });
 chargingStationSchema.index({ latitude: 1, longitude: 1 });
 
 const ChargingStation = mongoose.model("ChargingStation", chargingStationSchema);

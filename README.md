@@ -8,17 +8,12 @@
 npm install
 ```
 
-2. Create your env file:
-
-- Copy `.env.example` to `.env`
-- Fill in `MONGODB_URI`, optional `MONGODB_DB`, and `JWT_SECRET`
-
 3. Create a MongoDB database/cluster and connection URI.
 
 Example URI:
 
 ```bash
-MONGODB_URI=mongodb://127.0.0.1:27017/ev_db
+MONGODB_URI=mongodb://127.0.0.1:27017/db_name
 ```
 
 4. Start the server:
@@ -54,4 +49,3 @@ Base: `/api`
 ## Notes
 - Booking keeps atomic slot control with `findOneAndUpdate(...available_slots: {$gt: 0})`.
 - Route IDs are Mongo ObjectIds now (`station_id` and `:id` params).
-

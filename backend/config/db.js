@@ -1,0 +1,16 @@
+const mongoose = require("mongoose");
+
+async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not set");
+  }
+
+  await mongoose.connect(uri, {
+    dbName: process.env.MONGODB_DB || undefined,
+    maxPoolSize: 10,
+  });
+}
+
+module.exports = { connectDB, mongoose };
+

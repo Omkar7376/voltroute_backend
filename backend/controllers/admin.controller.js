@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 const { ChargingStation, User, Booking } = require("../models");
 const { ok, created, badRequest, notFound, serverError } = require("../utils/responses");
@@ -121,6 +122,25 @@ async function approveVendor(req, res) {
   }
 }
 
+async function approveVendorByEmail(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
+  try {
+    const email = String(req.body.email).toLowerCase().trim();
+    const vendor = await User.findOneAndUpdate(
+      { email, role: "vendor" },
+      { $set: { is_approved: true } },
+      { new: true }
+    );
+    if (!vendor) return notFound(res, "Vendor not found");
+    return ok(res, vendor, "Vendor approved");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
 async function rejectVendor(req, res) {
   try {
     const vendor = await User.findOneAndUpdate(
@@ -158,6 +178,42 @@ async function unbanUser(req, res) {
   }
 }
 
+async function createAdminUser(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
+  try {
+    const { name, email, password } = req.body;
+    const normalizedEmail = String(email).toLowerCase().trim();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      existing.role = "admin";
+      existing.is_approved = true;
+      if (name) existing.name = String(name).trim();
+      if (password) existing.password = await bcrypt.hash(String(password), 10);
+      await existing.save();
+      const safe = await User.findById(existing._id).select("-password");
+      return ok(res, safe, "User updated to admin");
+    }
+
+    if (!password) return badRequest(res, "Password is required for new admin accounts");
+
+    const hashed = await bcrypt.hash(String(password), 10);
+    const user = await User.create({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: hashed,
+      role: "admin",
+      is_approved: true,
+    });
+    const safe = await User.findById(user._id).select("-password");
+    return created(res, safe, "Admin created");
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
 async function dashboardStats(req, res) {
   try {
     const [users, vendors, approvedVendors, stations, bookings] = await Promise.all([
@@ -182,9 +238,11 @@ module.exports = {
   listBookings,
   listVendors,
   approveVendor,
+  approveVendorByEmail,
   rejectVendor,
   banUser,
   unbanUser,
+  createAdminUser,
   dashboardStats,
 };
 

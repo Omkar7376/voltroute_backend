@@ -11,9 +11,11 @@ const {
   listBookings,
   listVendors,
   approveVendor,
+  approveVendorByEmail,
   rejectVendor,
   banUser,
   unbanUser,
+  createAdminUser,
   dashboardStats,
 } = require("../controllers/admin.controller");
 
@@ -69,6 +71,24 @@ router.get("/admin/vendors", verifyToken, checkRole("admin"), listVendors);
 router.get("/admin/bookings", verifyToken, checkRole("admin"), listBookings);
 router.get("/admin/dashboard/stats", verifyToken, checkRole("admin"), dashboardStats);
 router.patch("/admin/vendors/:id/approve", verifyToken, checkRole("admin"), [param("id").isMongoId()], approveVendor);
+router.patch(
+  "/admin/vendors/approve-by-email",
+  verifyToken,
+  checkRole("admin"),
+  [body("email").isEmail().normalizeEmail()],
+  approveVendorByEmail
+);
+router.post(
+  "/admin/admins",
+  verifyToken,
+  checkRole("admin"),
+  [
+    body("name").trim().isLength({ min: 1, max: 120 }),
+    body("email").isEmail().normalizeEmail(),
+    body("password").optional({ values: "falsy" }).isLength({ min: 6, max: 128 }),
+  ],
+  createAdminUser
+);
 router.patch("/admin/vendors/:id/reject", verifyToken, checkRole("admin"), [param("id").isMongoId()], rejectVendor);
 router.patch("/admin/users/:id/ban", verifyToken, checkRole("admin"), [param("id").isMongoId()], banUser);
 router.patch("/admin/users/:id/unban", verifyToken, checkRole("admin"), [param("id").isMongoId()], unbanUser);

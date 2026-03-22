@@ -17,6 +17,7 @@ const {
   unbanUser,
   createAdminUser,
   dashboardStats,
+  listPendingVendors,
 } = require("../controllers/admin.controller");
 
 const router = express.Router();
@@ -80,7 +81,7 @@ const approveVendorByEmailHandlers = [
 router.patch("/admin/vendors/approve-by-email", ...approveVendorByEmailHandlers);
 router.post("/admin/vendors/approve-by-email", ...approveVendorByEmailHandlers);
 
-router.get("/admin/vendors/pending", verifyToken, checkRole("admin"), listPendingVendors);
+router.get("/admin/approvals/pending", verifyToken, checkRole("admin"), listPendingVendors);
 router.patch("/admin/vendors/:id/approve", verifyToken, checkRole("admin"), [param("id").isMongoId()], approveVendor);
 router.post(
   "/admin/admins",

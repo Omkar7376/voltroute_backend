@@ -70,6 +70,9 @@ async function updateMyStation(req, res) {
 }
 
 async function deleteMyStation(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
   try {
     const station = await ChargingStation.findById(req.params.id);
     if (!station) return notFound(res, "Station not found");

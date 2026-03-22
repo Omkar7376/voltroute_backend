@@ -107,7 +107,23 @@ async function listVendors(req, res) {
   }
 }
 
+async function listPendingVendors(req, res) {
+  try {
+    const vendors = await User.find(
+      { role: "vendor", is_approved: false },
+      { name: 1, email: 1, role: 1, is_approved: 1, is_banned: 1, created_at: 1 }
+    ).sort({ _id: -1 });
+    return ok(res, vendors);
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
 async function approveVendor(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
   try {
     const vendor = await User.findOneAndUpdate(
       { _id: req.params.id, role: "vendor" },
@@ -142,6 +158,9 @@ async function approveVendorByEmail(req, res) {
 }
 
 async function rejectVendor(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
   try {
     const vendor = await User.findOneAndUpdate(
       { _id: req.params.id, role: "vendor" },
@@ -157,6 +176,9 @@ async function rejectVendor(req, res) {
 }
 
 async function banUser(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { $set: { is_banned: true } }, { new: true });
     if (!user) return notFound(res, "User not found");
@@ -168,6 +190,9 @@ async function banUser(req, res) {
 }
 
 async function unbanUser(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { $set: { is_banned: false } }, { new: true });
     if (!user) return notFound(res, "User not found");
@@ -244,5 +269,6 @@ module.exports = {
   unbanUser,
   createAdminUser,
   dashboardStats,
+  listPendingVendors,
 };
 

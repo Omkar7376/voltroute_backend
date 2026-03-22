@@ -1,6 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { register, login } = require("../controllers/auth.controller");
+const { register, login, bootstrapFirstAdmin } = require("../controllers/auth.controller");
 
 const router = express.Router();
 
@@ -19,6 +19,17 @@ router.post(
   "/login",
   [body("email").isEmail().normalizeEmail(), body("password").isString().isLength({ min: 1 })],
   login
+);
+
+router.post(
+  "/bootstrap-first-admin",
+  [
+    body("name").trim().isLength({ min: 1, max: 120 }),
+    body("email").isEmail().normalizeEmail(),
+    body("password").isLength({ min: 6, max: 128 }),
+    body("setup_secret").isString().isLength({ min: 16, max: 256 }),
+  ],
+  bootstrapFirstAdmin
 );
 
 module.exports = router;

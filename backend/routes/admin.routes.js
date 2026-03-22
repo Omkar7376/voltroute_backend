@@ -70,14 +70,17 @@ router.get("/admin/users", verifyToken, checkRole("admin"), listUsers);
 router.get("/admin/vendors", verifyToken, checkRole("admin"), listVendors);
 router.get("/admin/bookings", verifyToken, checkRole("admin"), listBookings);
 router.get("/admin/dashboard/stats", verifyToken, checkRole("admin"), dashboardStats);
-router.patch("/admin/vendors/:id/approve", verifyToken, checkRole("admin"), [param("id").isMongoId()], approveVendor);
-router.patch(
-  "/admin/vendors/approve-by-email",
+
+const approveVendorByEmailHandlers = [
   verifyToken,
   checkRole("admin"),
   [body("email").isEmail().normalizeEmail()],
-  approveVendorByEmail
-);
+  approveVendorByEmail,
+];
+router.patch("/admin/vendors/approve-by-email", ...approveVendorByEmailHandlers);
+router.post("/admin/vendors/approve-by-email", ...approveVendorByEmailHandlers);
+
+router.patch("/admin/vendors/:id/approve", verifyToken, checkRole("admin"), [param("id").isMongoId()], approveVendor);
 router.post(
   "/admin/admins",
   verifyToken,

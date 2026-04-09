@@ -263,6 +263,34 @@ async function dashboardStats(req, res) {
   }
 }
 
+async function updateBookingStatus(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["booked", "cancelled", "completed", "rejected"];
+    if (!allowedStatuses.includes(status?.toLowerCase())) {
+      return badRequest(res, "Invalid status. Allowed: " + allowedStatuses.join(", "));
+    }
+
+    const booking = await Booking.findByIdAndUpdate(
+      id,
+      { $set: { status: status.toLowerCase() } },
+      { new: true }
+    ).populate("user_id station_id");
+
+    if (!booking) return notFound(res, "Booking not found");
+
+    return ok(res, booking, "Booking status updated to " + status);
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
 module.exports = {
   createStation,
   updateStation,
@@ -278,5 +306,6 @@ module.exports = {
   createAdminUser,
   dashboardStats,
   listPendingVendors,
+  updateBookingStatus,
 };
 

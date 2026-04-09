@@ -94,7 +94,7 @@ router.post(
   ],
   createAdminUser
 );
-router.patch("/admin/vendors/:id/reject", verifyToken, checkRole("admin"), [param("id").isMongoId()], rejectVendor);
+router.patch("/admin/bookings/:id/status", verifyToken, checkRole("admin"), [param("id").isMongoId()], updateBookingStatus);
 router.patch("/admin/users/:id/ban", verifyToken, checkRole("admin"), [param("id").isMongoId()], banUser);
 router.patch("/admin/users/:id/unban", verifyToken, checkRole("admin"), [param("id").isMongoId()], unbanUser);
 

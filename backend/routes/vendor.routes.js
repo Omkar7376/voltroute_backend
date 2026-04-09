@@ -54,6 +54,7 @@ router.put(
 
 router.delete("/vendor/station/:id", ...vendorOnly, [param("id").isMongoId()], deleteMyStation);
 router.get("/vendor/bookings", ...vendorOnly, myStationBookings);
+router.patch("/vendor/bookings/:id/status", ...vendorOnly, [param("id").isMongoId()], updateBookingStatus);
 
 module.exports = router;
 

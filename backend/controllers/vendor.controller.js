@@ -100,11 +100,44 @@ async function myStationBookings(req, res) {
   }
 }
 
+async function updateBookingStatus(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return badRequest(res, "Validation error", errors.array());
+
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = ["booked", "cancelled", "completed", "rejected"];
+    if (!allowedStatuses.includes(status?.toLowerCase())) {
+      return badRequest(res, "Invalid status. Allowed: " + allowedStatuses.join(", "));
+    }
+
+    // Find booking and ensure it belongs to one of the vendor's stations
+    const booking = await Booking.findById(id).populate("station_id");
+    if (!booking) return notFound(res, "Booking not found");
+
+    if (String(booking.station_id.vendor_id) !== String(req.user.id)) {
+      return forbidden(res, "You do not have permission to update this booking");
+    }
+
+    booking.status = status.toLowerCase();
+    await booking.save();
+
+    const updated = await Booking.findById(id).populate("user_id station_id");
+    return ok(res, updated, "Booking status updated to " + status);
+  } catch (err) {
+    console.error(err);
+    return serverError(res);
+  }
+}
+
 module.exports = {
   createStation,
   listMyStations,
   updateMyStation,
   deleteMyStation,
   myStationBookings,
+  updateBookingStatus,
 };
 

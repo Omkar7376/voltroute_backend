@@ -6,7 +6,7 @@ const bookingSchema = new Schema(
     user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
     station_id: { type: Schema.Types.ObjectId, ref: "ChargingStation", required: true },
     booking_time: { type: Date, required: true },
-    status: { type: String, enum: ["booked", "cancelled", "completed"], default: "booked" },
+    status: { type: String, enum: ["booked", "cancelled", "completed", "rejected"], default: "booked" },
   },
   {
     collection: "bookings",

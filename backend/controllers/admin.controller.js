@@ -241,14 +241,22 @@ async function createAdminUser(req, res) {
 
 async function dashboardStats(req, res) {
   try {
-    const [users, vendors, approvedVendors, stations, bookings] = await Promise.all([
+    const [users, vendors, approvedVendors, stations, bookings, activeStationsData] = await Promise.all([
       User.countDocuments({ role: "user" }),
       User.countDocuments({ role: "vendor" }),
       User.countDocuments({ role: "vendor", is_approved: true }),
       ChargingStation.countDocuments({}),
       Booking.countDocuments({}),
+      ChargingStation.find({ available_slots: { $gt: 0 } }).sort({ _id: -1 }),
     ]);
-    return ok(res, { users, vendors, approved_vendors: approvedVendors, stations, bookings });
+    return ok(res, { 
+      users, 
+      vendors, 
+      approved_vendors: approvedVendors, 
+      stations, 
+      bookings,
+      active_stations_data: activeStationsData 
+    });
   } catch (err) {
     console.error(err);
     return serverError(res);

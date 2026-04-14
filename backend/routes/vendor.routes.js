@@ -9,6 +9,7 @@ const {
   updateMyStation,
   deleteMyStation,
   myStationBookings,
+  updateBookingStatus,
 } = require("../controllers/vendor.controller");
 
 const router = express.Router();

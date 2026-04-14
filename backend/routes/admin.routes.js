@@ -3,6 +3,7 @@ const { body, param } = require("express-validator");
 
 const verifyToken = require("../middleware/verifyToken");
 const checkRole = require("../middleware/checkRole");
+const adminController = require("../controllers/admin.controller");
 const {
   createStation,
   updateStation,
@@ -19,7 +20,7 @@ const {
   dashboardStats,
   listPendingVendors,
   updateBookingStatus,
-} = require("../controllers/admin.controller");
+} = adminController;
 
 const router = express.Router();
 

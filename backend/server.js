@@ -9,7 +9,7 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 async function start() {
   await connectDB();
   
-  startCronJobs();
+    startCronJobs();
 
   app.listen(PORT, () => {
     console.log(`API listening on port ${PORT}`);
